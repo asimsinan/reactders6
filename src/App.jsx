@@ -2,6 +2,8 @@ import "./App.css";
 import Liste from "./Liste";
 import InputWithLabel from "./InputWithLabel";
 import React from "react";
+import axios from "axios";
+import DataProvider from "./DataProvider";
 function App() {
   const API_ENDPOINT="https://my-json-server.typicode.com/asimsinan/mockapi/dersler"
   const [aramaMetni, setAramaMetni] = React.useState(
@@ -50,17 +52,20 @@ const [yazilar,dispatchYazilar]=React.useReducer(yazilarReducer,{
   React.useEffect(() => {
     localStorage.setItem("aranan", aramaMetni);
   }, [aramaMetni]);
-
-  React.useEffect(() => {
+  const handleFetchPost=React.useCallback(()=>{
     dispatchYazilar({type:"FETCH_INIT"});
-    fetch(API_ENDPOINT).then((response)=>response.json()).then((result) => {
+    axios(API_ENDPOINT).then((result) => {
         dispatchYazilar({
           type:"FETCH_SUCCESS",
-          payload:result.data
+          payload:result.data.data
         });
       })
       .catch(() => dispatchYazilar({type:"FETCH_FAILURE"}));
-  }, []);
+
+  });
+  React.useEffect(() => {
+    handleFetchPost();
+     }, []);
 
   const yaziListesi = [
     {
@@ -117,7 +122,10 @@ const [yazilar,dispatchYazilar]=React.useReducer(yazilarReducer,{
       ) : yazilar.isLoading ? (
         <p>Yükleniyoor...</p>
       ) : (
+        <DataProvider>
         <Liste yazilar={arananYazilar} onRemovePost={handleRemovePost} />
+        </DataProvider>
+        
       )}
     </div>
   );
